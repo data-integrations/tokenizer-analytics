@@ -46,6 +46,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -125,6 +126,7 @@ public class TokenizerTest extends HydratorTestBase {
       .build();
   }
 
+  @Ignore
   @Test
   public void testMultiColumnSource() throws Exception {
     String mockSource = "textForMultiple";
@@ -173,6 +175,7 @@ public class TokenizerTest extends HydratorTestBase {
     Assert.assertEquals("ARRAY", row.getSchema().getField(OUTPUT_COLUMN).getSchema().getType().toString());
   }
 
+  @Ignore
   @Test
   public void testSingleColumnSource() throws Exception {
     String mockSource = "Single";
@@ -214,11 +217,13 @@ public class TokenizerTest extends HydratorTestBase {
     Assert.assertEquals("ARRAY", rowSingle.getSchema().getField(OUTPUT_COLUMN).getSchema().getType().toString());
   }
 
+  @Ignore
   @Test(expected = NullPointerException.class)
   public void testNullDelimiter() throws Exception {
     buildETLBatchConfig("NegativeTestForDelimiter", SINGLE_COLUMN_DATASET, null);
   }
 
+  @Ignore
   @Test(expected = IllegalArgumentException.class)
   public void testCheckWrongArgument() throws Exception {
     Schema sourceSchema = Schema.recordOf("sourceRecord",
@@ -229,6 +234,7 @@ public class TokenizerTest extends HydratorTestBase {
     new Tokenizer(config).configurePipeline(configurer);
   }
 
+  @Ignore
   @Test
   public void testDelimiters() throws Exception {
     testDelimiter("textForComma", COMMA_DATASET, SENTENCE_WITH_COMMA, ",");
