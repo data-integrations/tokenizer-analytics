@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,35 +14,36 @@
  * the License.
  */
 
-package co.cask.hydrator.plugin;
+package io.cdap.plugin.tokenizer;
 
-import co.cask.cdap.api.artifact.ArtifactVersion;
-import co.cask.cdap.api.data.format.StructuredRecord;
-import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.datapipeline.DataPipelineApp;
-import co.cask.cdap.datapipeline.SmartWorkflow;
-import co.cask.cdap.etl.api.batch.SparkCompute;
-import co.cask.cdap.etl.mock.batch.MockSink;
-import co.cask.cdap.etl.mock.batch.MockSource;
-import co.cask.cdap.etl.mock.common.MockPipelineConfigurer;
-import co.cask.cdap.etl.mock.test.HydratorTestBase;
-import co.cask.cdap.etl.proto.v2.ETLBatchConfig;
-import co.cask.cdap.etl.proto.v2.ETLPlugin;
-import co.cask.cdap.etl.proto.v2.ETLStage;
-import co.cask.cdap.proto.artifact.AppRequest;
-import co.cask.cdap.proto.artifact.ArtifactRange;
-import co.cask.cdap.proto.artifact.ArtifactSummary;
-import co.cask.cdap.proto.id.ApplicationId;
-import co.cask.cdap.proto.id.ArtifactId;
-import co.cask.cdap.proto.id.NamespaceId;
-import co.cask.cdap.test.ApplicationManager;
-import co.cask.cdap.test.DataSetManager;
-import co.cask.cdap.test.TestConfiguration;
-import co.cask.cdap.test.WorkflowManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import io.cdap.cdap.api.artifact.ArtifactRange;
+import io.cdap.cdap.api.artifact.ArtifactSummary;
+import io.cdap.cdap.api.artifact.ArtifactVersion;
+import io.cdap.cdap.api.data.format.StructuredRecord;
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.dataset.table.Table;
+import io.cdap.cdap.datapipeline.DataPipelineApp;
+import io.cdap.cdap.datapipeline.SmartWorkflow;
+import io.cdap.cdap.etl.api.batch.SparkCompute;
+import io.cdap.cdap.etl.mock.batch.MockSink;
+import io.cdap.cdap.etl.mock.batch.MockSource;
+import io.cdap.cdap.etl.mock.common.MockPipelineConfigurer;
+import io.cdap.cdap.etl.mock.test.HydratorTestBase;
+import io.cdap.cdap.etl.proto.v2.ETLBatchConfig;
+import io.cdap.cdap.etl.proto.v2.ETLPlugin;
+import io.cdap.cdap.etl.proto.v2.ETLStage;
+import io.cdap.cdap.proto.ProgramRunStatus;
+import io.cdap.cdap.proto.artifact.AppRequest;
+import io.cdap.cdap.proto.id.ApplicationId;
+import io.cdap.cdap.proto.id.ArtifactId;
+import io.cdap.cdap.proto.id.NamespaceId;
+import io.cdap.cdap.test.ApplicationManager;
+import io.cdap.cdap.test.DataSetManager;
+import io.cdap.cdap.test.TestConfiguration;
+import io.cdap.cdap.test.WorkflowManager;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -64,9 +65,11 @@ public class TokenizerTest extends HydratorTestBase {
   @ClassRule
   public static final TestConfiguration CONFIG = new TestConfiguration("explore.enabled", false);
 
-  protected static final ArtifactId DATAPIPELINE_ARTIFACT_ID =
-    NamespaceId.DEFAULT.artifact("data-pipeline", "4.0.0");
-  protected static final ArtifactSummary DATAPIPELINE_ARTIFACT = new ArtifactSummary("data-pipeline", "4.0.0");
+  private static final String PIPELINE_VERSION = "6.0.0-SNAPSHOT";
+  private static final ArtifactId DATAPIPELINE_ARTIFACT_ID = NamespaceId.DEFAULT.artifact("data-pipeline",
+                                                                                          PIPELINE_VERSION);
+  private static final ArtifactSummary DATAPIPELINE_ARTIFACT = new ArtifactSummary("data-pipeline",
+                                                                                   PIPELINE_VERSION);
 
   private static final String SINGLE_COLUMN_DATASET = "SingleColumn";
   private static final String COMMA_DATASET = "commaDataset";
@@ -99,7 +102,7 @@ public class TokenizerTest extends HydratorTestBase {
     // add the artifact for etl batch app
     setupBatchArtifacts(DATAPIPELINE_ARTIFACT_ID, DataPipelineApp.class);
     Set<ArtifactRange> parents = ImmutableSet.of(
-      new ArtifactRange(NamespaceId.DEFAULT, DATAPIPELINE_ARTIFACT_ID.getArtifact(),
+      new ArtifactRange(NamespaceId.DEFAULT.getNamespace(), DATAPIPELINE_ARTIFACT_ID.getArtifact(),
                         new ArtifactVersion(DATAPIPELINE_ARTIFACT_ID.getVersion()), true,
                         new ArtifactVersion(DATAPIPELINE_ARTIFACT_ID.getVersion()), true));
     addPluginArtifact(NamespaceId.DEFAULT.artifact("tokenizer-plugin", "1.0.0"), parents,
@@ -114,7 +117,7 @@ public class TokenizerTest extends HydratorTestBase {
    */
   private ETLBatchConfig buildETLBatchConfig(String mockNameOfSourcePlugin,
                                              String mockNameOfSinkPlugin, String pattern) {
-    return ETLBatchConfig.builder("* * * * *")
+    return ETLBatchConfig.builder()
       .addStage(new ETLStage("source", MockSource.getPlugin(mockNameOfSourcePlugin)))
       .addStage(new ETLStage("sparkcompute", new ETLPlugin(Tokenizer.PLUGIN_NAME, SparkCompute.PLUGIN_TYPE,
                                            ImmutableMap.of("outputColumn", OUTPUT_COLUMN,
@@ -137,7 +140,7 @@ public class TokenizerTest extends HydratorTestBase {
     ETLBatchConfig etlConfig = buildETLBatchConfig(mockSource, multiColumnData, PATTERN);
     AppRequest<ETLBatchConfig> appRequest = new AppRequest<>(DATAPIPELINE_ARTIFACT, etlConfig);
     ApplicationId appId = NamespaceId.DEFAULT.app(APP_NAME);
-    ApplicationManager appManager = deployApplication(appId.toId(), appRequest);
+    ApplicationManager appManager = deployApplication(appId, appRequest);
     DataSetManager<Table> inputManager = getDataset(mockSource);
     List<StructuredRecord> input = ImmutableList.of(
       StructuredRecord.builder(SOURCE_SCHEMA_MULTIPLE).set(COLUMN_TOKENIZED, SENTENCE1).set(NAME_COLUMN, "CDAP")
@@ -152,7 +155,7 @@ public class TokenizerTest extends HydratorTestBase {
     // manually trigger the pipeline
     WorkflowManager workflowManager = appManager.getWorkflowManager(SmartWorkflow.NAME);
     workflowManager.start();
-    workflowManager.waitForFinish(5, TimeUnit.MINUTES);
+    workflowManager.waitForRun(ProgramRunStatus.COMPLETED, 5, TimeUnit.MINUTES);
     DataSetManager<Table> tokenizedTexts = getDataset(multiColumnData);
     List<StructuredRecord> output = MockSink.readOutput(tokenizedTexts);
     Set<List> results = new HashSet<>();
@@ -185,7 +188,7 @@ public class TokenizerTest extends HydratorTestBase {
     ETLBatchConfig etlConfig = buildETLBatchConfig(mockSource, SINGLE_COLUMN_DATASET, PATTERN);
     AppRequest<ETLBatchConfig> appRequest = new AppRequest<>(DATAPIPELINE_ARTIFACT, etlConfig);
     ApplicationId appId = NamespaceId.DEFAULT.app(APP_NAME);
-    ApplicationManager appManager = deployApplication(appId.toId(), appRequest);
+    ApplicationManager appManager = deployApplication(appId, appRequest);
     DataSetManager<Table> inputManager = getDataset(mockSource);
     List<StructuredRecord> input = ImmutableList.of(
       StructuredRecord.builder(SOURCE_SCHEMA_SINGLE).set(COLUMN_TOKENIZED, SENTENCE1).build(),
@@ -196,7 +199,7 @@ public class TokenizerTest extends HydratorTestBase {
     // manually trigger the pipeline
     WorkflowManager workflowManager = appManager.getWorkflowManager(SmartWorkflow.NAME);
     workflowManager.start();
-    workflowManager.waitForFinish(5, TimeUnit.MINUTES);
+    workflowManager.waitForRun(ProgramRunStatus.COMPLETED, 5, TimeUnit.MINUTES);
     DataSetManager<Table> tokenizedTextSingle = getDataset(SINGLE_COLUMN_DATASET);
     List<StructuredRecord> output = MockSink.readOutput(tokenizedTextSingle);
     Set<List> results = new HashSet<>();
@@ -219,13 +222,13 @@ public class TokenizerTest extends HydratorTestBase {
 
   @Ignore
   @Test(expected = NullPointerException.class)
-  public void testNullDelimiter() throws Exception {
+  public void testNullDelimiter() {
     buildETLBatchConfig("NegativeTestForDelimiter", SINGLE_COLUMN_DATASET, null);
   }
 
   @Ignore
   @Test(expected = IllegalArgumentException.class)
-  public void testCheckWrongArgument() throws Exception {
+  public void testCheckWrongArgument() {
     Schema sourceSchema = Schema.recordOf("sourceRecord",
                                           Schema.Field.of(NAME_COLUMN, Schema.of(Schema.Type.STRING)),
                                           Schema.Field.of(COLUMN_TOKENIZED, Schema.of(Schema.Type.INT)));
@@ -250,7 +253,7 @@ public class TokenizerTest extends HydratorTestBase {
     ETLBatchConfig etlConfig = buildETLBatchConfig(mockSource, mockSink, delimiter);
     AppRequest<ETLBatchConfig> appRequest = new AppRequest<>(DATAPIPELINE_ARTIFACT, etlConfig);
     ApplicationId appId = NamespaceId.DEFAULT.app(APP_NAME);
-    ApplicationManager appManager = deployApplication(appId.toId(), appRequest);
+    ApplicationManager appManager = deployApplication(appId, appRequest);
     DataSetManager<Table> inputManager = getDataset(mockSource);
     List<StructuredRecord> input = ImmutableList.of(
       StructuredRecord.builder(SOURCE_SCHEMA_MULTIPLE).set(COLUMN_TOKENIZED,
@@ -259,7 +262,7 @@ public class TokenizerTest extends HydratorTestBase {
     // manually trigger the pipeline
     WorkflowManager workflowManager = appManager.getWorkflowManager(SmartWorkflow.NAME);
     workflowManager.start();
-    workflowManager.waitForFinish(5, TimeUnit.MINUTES);
+    workflowManager.waitForRun(ProgramRunStatus.COMPLETED, 5, TimeUnit.MINUTES);
     DataSetManager<Table> tokenizedTexts = getDataset(mockSink);
     List<StructuredRecord> output = MockSink.readOutput(tokenizedTexts);
     Set<List> results = new HashSet<>();
