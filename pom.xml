@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright © 2015 Cask Data, Inc.
+  Copyright © 2015-2019 Cask Data, Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License"); you may not
   use this file except in compliance with the License. You may obtain a copy of
@@ -18,10 +18,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <name>Tokenizer Plugin</name>
-  <groupId>co.cask.hydrator</groupId>
+  <groupId>io.cdap.plugin</groupId>
   <artifactId>tokenizer-plugin</artifactId>
   <modelVersion>4.0.0</modelVersion>
-  <version>1.0.1</version>
+  <version>1.2.0-SNAPSHOT</version>
 
   <licenses>
     <license>
@@ -34,22 +34,22 @@
 
   <developers>
     <developer>
-      <name>Cask Data</name>
-      <email>cask-dev@googlegroups.com</email>
-      <organization>Cask Data, Inc.</organization>
-      <organizationUrl>http://www.cdap.io</organizationUrl>
+      <name>CDAP</name>
+      <email>cdap-dev@googlegroups.com</email>
+      <organization>CDAP</organization>
+      <organizationUrl>http://cdap.io</organizationUrl>
     </developer>
   </developers>
 
   <scm>
-    <connection>scm:https://github.com/hydrator/tokenizer-analytics.git</connection>
-    <developerConnection>scm:git:git@github.com:hydrator/tokenizer-analytics.git</developerConnection>
-    <url>https://github.com/hydrator/tokenizer-analytics.git</url>
+    <connection>scm:https://github.com/data-integrations/tokenizer-analytics.git</connection>
+    <developerConnection>scm:git:git@github.com:data-integrations/tokenizer-analytics.git</developerConnection>
+    <url>https://github.com/data-integrations/tokenizer-analytics.git</url>
     <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
-    <url>https://issues.cask.co/browse/HYDRATOR</url>
+    <url>https://issues.cask.co</url>
   </issueManagement>
 
   <distributionManagement>
@@ -62,8 +62,8 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
     <site>
-      <id>cask</id>
-      <url>http://cask.co</url>
+      <id>CDAP</id>
+      <url>http://cdap.io</url>
     </site>
   </distributionManagement>
 
@@ -84,111 +84,55 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <cdap.version>4.1.1</cdap.version>
-    <hadoop.version>2.3.0</hadoop.version>
-    <spark.version>1.6.1</spark.version>
+    <cdap.version>6.0.0-SNAPSHOT</cdap.version>
+    <cdap.plugin.version>2.2.0-SNAPSHOT</cdap.plugin.version>
+    <spark.version>2.1.3</spark.version>
+    <guava.version>13.0.1</guava.version>
     <junit.version>4.11</junit.version>
-    <hydrator.version>1.6.1</hydrator.version>
-    <widgets.dir>widgets</widgets.dir>
-    <docs.dir>docs</docs.dir>
-    <app.parents>system:cdap-etl-batch[4.1.0,5.0.0-SNAPSHOT),system:cdap-data-pipeline[4.1.0,5.0.0-SNAPSHOT),system:cdap-data-streams[4.1.0,5.0.0-SNAPSHOT)</app.parents>
-    <!-- this is here because project.basedir evaluates to null in the script build step -->
-    <main.basedir>${project.basedir}</main.basedir>
+    <data.stream.parent>system:cdap-data-streams[6.0.0-SNAPSHOT,7.0.0-SNAPSHOT)</data.stream.parent>
+    <data.pipeline.parent>system:cdap-data-pipeline[6.0.0-SNAPSHOT,7.0.0-SNAPSHOT)</data.pipeline.parent>
   </properties>
-
-
 
   <dependencies>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-api</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-etl-api</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-unit-test</artifactId>
-      <version>${cdap.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>asm</groupId>
-          <artifactId>asm</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-proto</artifactId>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-etl-api-spark</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-formats</artifactId>
       <version>${cdap.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-etl-proto</artifactId>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-data-pipeline2_2.11</artifactId>
       <version>${cdap.version}</version>
-      <scope>provided</scope>
+      <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-etl-batch</artifactId>
-      <version>${cdap.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-data-pipeline</artifactId>
-      <version>${cdap.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>hydrator-test</artifactId>
       <version>${cdap.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.hydrator</groupId>
-      <artifactId>hydrator-common</artifactId>
-      <version>${hydrator.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>13.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>${hadoop.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-mapreduce-client-core</artifactId>
-      <version>${hadoop.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>1.4</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-      <version>1.6</version>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -198,7 +142,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.10</artifactId>
+      <artifactId>spark-sql_2.11</artifactId>
       <version>${spark.version}</version>
       <scope>provided</scope>
       <exclusions>
@@ -246,7 +190,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-mllib_2.10</artifactId>
+      <artifactId>spark-mllib_2.11</artifactId>
       <version>${spark.version}</version>
       <scope>provided</scope>
     </dependency>
@@ -260,8 +204,8 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.1</version>
           <configuration>
-            <source>1.7</source>
-            <target>1.7</target>
+            <source>1.8</source>
+            <target>1.8</target>
           </configuration>
         </plugin>
         <plugin>
@@ -300,7 +244,7 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
-          <version>2.3.7</version>
+          <version>4.2.0</version>
           <extensions>true</extensions>
           <configuration>
             <instructions>
@@ -308,7 +252,7 @@
               <Embed-Transitive>true</Embed-Transitive>
               <Embed-Directory>lib</Embed-Directory>
               <!--Only @Plugin classes in the export packages will be included as plugin-->
-              <_exportcontents>co.cask.hydrator.plugin.*</_exportcontents>
+              <_exportcontents>io.cdap.plugin.*</_exportcontents>
             </instructions>
           </configuration>
           <executions>
@@ -321,86 +265,21 @@
           </executions>
         </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.7</version>
+          <groupId>io.cdap</groupId>
+          <artifactId>cdap-maven-plugin</artifactId>
+          <version>1.1.0</version>
+          <configuration>
+            <cdapArtifacts>
+              <parent>${data.pipeline.parent}</parent>
+              <parent>${data.stream.parent}</parent>
+            </cdapArtifacts>
+          </configuration>
           <executions>
-            <!-- Create the config file for artifact which can be used to deploy the artifact.
-                 Sets the parents field to system:cdap-etl-batch and system:cdap-etl-realtime with whatever
-                 version range is set in the etl.versionRange property.
-                 also sets a widget and doc property for each file contained in the widgets and docs directories. -->
             <execution>
               <id>create-artifact-config</id>
               <phase>prepare-package</phase>
-              <configuration>
-                <target>
-                  <script language="javascript"> <![CDATA[
-                    // for some reason, project.basedir evaluates to null if we just get the property here.
-                    // so we set main.basedir to project.basedir in the pom properties, then main.basedir is used here
-                    // where it evaluates correctly for whatever reason
-                    var baseDir = project.getProperty("main.basedir");
-                    var targetDir = project.getProperty("project.build.directory");
-                    var artifactId = project.getProperty("project.artifactId");
-                    var version = project.getProperty("project.version");
-                    var cfgFile = new java.io.File(targetDir, artifactId + "-" + version + ".json");
-                    if (!cfgFile.exists()) {
-                      cfgFile.createNewFile();
-                    }
-                    var parents = project.getProperty("app.parents").split(",");
-                    var config = {
-                      "parents": [ ],
-                      "properties": {}
-                    }
-                    for (i = 0; i < parents.length; i+=2) {
-                      // because name1[lo,hi],name2[lo,hi] gets split into "name1[lo", "hi]", "name2[lo", "hi]"
-                      // so we have to combine them again
-                      config.parents.push(parents[i] + "," + parents[i+1]);
-                    }
-                    // look in widgets directory for widget config for each plugin
-                    var widgetsDir = new java.io.File(baseDir, project.getProperty("widgets.dir"));
-                    if (widgetsDir.isDirectory()) {
-                      var widgetsFiles = widgetsDir.listFiles();
-                      for (i = 0; i < widgetsFiles.length; i++) {
-                        var widgetsFile = widgetsFiles[i];
-                        if (widgetsFile.isFile()) {
-                          var propertyName = "widgets." + widgetsFile.getName();
-                          // if the filename ends with .json
-                          if (propertyName.indexOf(".json", propertyName.length - 5) !== -1) {
-                            // strip the .json
-                            propertyName = propertyName.slice(0, -5);
-                            var contents = new java.lang.String(java.nio.file.Files.readAllBytes(widgetsFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
-                            var contentsAsJson = JSON.parse(contents);
-                            config.properties[propertyName] = JSON.stringify(contentsAsJson);
-                          }
-                        }
-                      }
-                    }
-                    // look in the docs directory for docs for each plugin
-                    var docsDir = new java.io.File(baseDir, project.getProperty("docs.dir"));
-                    if (docsDir.isDirectory()) {
-                      var docFiles = docsDir.listFiles();
-                      for (i = 0; i < docFiles.length; i++) {
-                        var docFile = docFiles[i];
-                        if (docFile.isFile()) {
-                          var propertyName = "doc." + docFile.getName();
-                          // if the filename ends with .md
-                          if (propertyName.indexOf(".md", propertyName.length - 3) !== -1) {
-                            // strip the extension
-                            propertyName = propertyName.slice(0, -3);
-                            var contents = new java.lang.String(java.nio.file.Files.readAllBytes(docFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
-                            config.properties[propertyName] = contents + "";
-                          }
-                        }
-                      }
-                    }
-                    var fw = new java.io.BufferedWriter(new java.io.FileWriter(cfgFile.getAbsoluteFile()));
-                    fw.write(JSON.stringify(config, null, 2));
-                    fw.close();
-                  ]]></script>
-                </target>
-              </configuration>
               <goals>
-                <goal>run</goal>
+                <goal>create-plugin-json</goal>
               </goals>
             </execution>
           </executions>
@@ -446,6 +325,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>io.cdap</groupId>
+        <artifactId>cdap-maven-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -494,7 +377,7 @@
               </links>
               <doctitle>${project.name} ${project.version}</doctitle>
               <bottom>
-                <![CDATA[Copyright &#169; {currentYear} <a href="http://cask.co" target="_blank">Cask Data, Inc.</a> Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a>.]]>
+                <![CDATA[Copyright &#169; {currentYear} <a href="http://cdap.io" target="_blank">Cask Data, Inc.</a> Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a>.]]>
               </bottom>
             </configuration>
             <executions>
